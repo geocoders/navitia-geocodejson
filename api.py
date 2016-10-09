@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 from flask import Flask
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 import requests
 from params import navitia_API_key as TOKEN
 from params import navitia_base_url as BASE
@@ -43,9 +43,20 @@ def point_to_geocodejson(a_place):
     return feature
 
 class NavitiaAutocomplete(Resource):
-    def get(self, coverage_name, query):
+    def get(self, coverage_name):
+        parser = reqparse.RequestParser()
+        parser.add_argument('q', type=str, help='the q you are you looking for', required=True)
+        parser.add_argument('limit', type=int)
+        args = parser.parse_args()
+        query = args['q']
+
+        navitia_params = {"q": query, "type[]":["address", "poi", "administrative_region"]}
+
+        if "limit" in args :
+            navitia_params['count'] = args['limit']
+
         navitia_url = "{}coverage/{}/places".format(navitia_base_url, coverage_name)
-        get_nav = requests.get(navitia_url, params = {"q": query, "type[]":["address", "poi", "administrative_region"]}, headers={'Authorization': navitia_API_key})
+        get_nav = requests.get(navitia_url, params = navitia_params, headers={'Authorization': navitia_API_key})
 
         navitia_places = [elem for elem in get_nav.json()["places"]]
         navitia_features = []
@@ -66,7 +77,7 @@ class NavitiaAutocomplete(Resource):
 
         return geocoder_json
 
-api.add_resource(NavitiaAutocomplete, '/coverage/<string:coverage_name>/<string:query>')
+api.add_resource(NavitiaAutocomplete, '/coverage/<string:coverage_name>', '/coverage/<string:coverage_name>/')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
