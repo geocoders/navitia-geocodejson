@@ -2,7 +2,7 @@
 
 Run queries against navitia places API with support of [geocodejson spec](https://github.com/geocoders/geocodejson-spec).
 
-## Intalling
+## Intalling
 
 Python3 is needed.
 To install the requirements :
@@ -15,7 +15,7 @@ Then duplicate the default_params folder and rename to params :
 
 Put your navitia api key in the params/__init__.py
 
-## Running
+## Running
 
     python api.py
 
