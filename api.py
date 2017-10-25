@@ -35,15 +35,15 @@ def point_to_geocodejson(a_place):
     feature['properties']["street"] = a_place[_type]['name']
     if "house_number" in a_place[_type]:
         feature['properties']["housenumber"] = a_place[_type]['house_number']
-        feature['properties']["name"] = "{} {}".format(feature['properties']["housenumber"], feature['properties']["street"])
+        feature['properties']["name"] = feature['properties']["street"]
     feature['properties']["city"] = a_place[_type]['administrative_regions'][0]['name']
     feature['properties']["label"] = a_place[_type]['label']
-    feature['properties']["postcode"] = a_place[_type]['administrative_regions'][0]['zip_code']
-    feature['properties']["citycode"] = a_place[_type]['administrative_regions'][0]['insee']
+    feature['properties']["postcode"] = a_place[_type]['administrative_regions'][0].get('zip_code')
+    feature['properties']["citycode"] = a_place[_type]['administrative_regions'][0].get('insee')
     return feature
 
 class NavitiaAutocomplete(Resource):
-    def get(self, coverage_name):
+    def get(self, coverage_name=None):
         parser = reqparse.RequestParser()
         parser.add_argument('q', type=str, help='the q you are you looking for', required=True)
         parser.add_argument('limit', type=int)
@@ -54,8 +54,11 @@ class NavitiaAutocomplete(Resource):
 
         if "limit" in args :
             navitia_params['count'] = args['limit']
+        if coverage_name:
+            navitia_url = "{}coverage/{}/places".format(navitia_base_url, coverage_name)
+        else:
+            navitia_url = '{}places'.format(navitia_base_url)
 
-        navitia_url = "{}coverage/{}/places".format(navitia_base_url, coverage_name)
         get_nav = requests.get(navitia_url, params = navitia_params, headers={'Authorization': navitia_API_key})
 
         navitia_places = [elem for elem in get_nav.json()["places"]]
@@ -77,7 +80,7 @@ class NavitiaAutocomplete(Resource):
 
         return geocoder_json
 
-api.add_resource(NavitiaAutocomplete, '/coverage/<string:coverage_name>', '/coverage/<string:coverage_name>/')
+api.add_resource(NavitiaAutocomplete, '/coverage/<string:coverage_name>', '/coverage/<string:coverage_name>/', '/')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
