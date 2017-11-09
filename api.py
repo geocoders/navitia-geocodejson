@@ -20,8 +20,8 @@ def admin_region_to_geocodejson(a_place):
     feature['properties']["name"] = a_place['name']
     feature['properties']["city"] = a_place['name']
     feature['properties']["label"] = a_place['label']
-    feature['properties']["postcode"] = a_place['zip_code']
-    feature['properties']["citycode"] = a_place['insee']
+    feature['properties']["postcode"] = a_place.get('zip_code')
+    feature['properties']["citycode"] = a_place.get('insee')
     return feature
 
 
@@ -36,10 +36,11 @@ def point_to_geocodejson(a_place):
     if "house_number" in a_place[_type]:
         feature['properties']["housenumber"] = a_place[_type]['house_number']
         feature['properties']["name"] = feature['properties']["street"]
-    feature['properties']["city"] = a_place[_type]['administrative_regions'][0]['name']
     feature['properties']["label"] = a_place[_type]['label']
-    feature['properties']["postcode"] = a_place[_type]['administrative_regions'][0].get('zip_code')
-    feature['properties']["citycode"] = a_place[_type]['administrative_regions'][0].get('insee')
+    if len(a_place[_type].get('administrative_regions', [])):
+        feature['properties']["city"] = a_place[_type]['administrative_regions'][0]['name']
+        feature['properties']["postcode"] = a_place[_type]['administrative_regions'][0].get('zip_code')
+        feature['properties']["citycode"] = a_place[_type]['administrative_regions'][0].get('insee')
     return feature
 
 class NavitiaAutocomplete(Resource):
