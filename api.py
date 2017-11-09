@@ -41,6 +41,16 @@ def point_to_geocodejson(a_place):
         feature['properties']["city"] = a_place[_type]['administrative_regions'][0]['name']
         feature['properties']["postcode"] = a_place[_type]['administrative_regions'][0].get('zip_code')
         feature['properties']["citycode"] = a_place[_type]['administrative_regions'][0].get('insee')
+
+    #sometimes, we have the zipcode inside the city name ...
+    hack_cut = feature['properties']["city"].split(' ')
+    if len(hack_cut) > 1 :
+        feature['properties']["city"] = hack_cut[0]
+
+    #the full name contains both the street and the housenumber
+    hack_cut = feature['properties']["street"].split(' ')
+    if hack_cut[0].isnumeric():
+        feature['properties']["street"] = feature['properties']["street"][len(hack_cut[0]) +1 :]
     return feature
 
 class NavitiaAutocomplete(Resource):
